@@ -1,0 +1,48 @@
+# coding: utf-8
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Configure cached packages to be shared between instances of the same base box.
+    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
+    config.cache.scope = :box
+  end
+
+  cluster = {
+    "CTRL01" => { 
+        :cpus => 2, 
+        :mem => 1024,  
+        :public_ip => "192.168.56.11",
+        :box => "centos6.6"
+    },
+    "SGHSHA28101" => { 
+        :cpus => 1, 
+        :mem => 1024,  
+        :public_ip => "192.168.56.61", 
+        :private_ip => "192.168.45.61", 
+        :box => "centos6.6"
+
+    }#,
+#    "SGHSHA28102" => { 
+#        :cpus => 1 , 
+#        :mem => 1024,  
+#        :private_ip => "192.168.45.62",
+#        :box => "windows2000"
+#    }
+  }
+
+  cluster.each_with_index do | (hostname, info), index |
+    config.vm.define hostname do | host |
+      host.vm.box = info[:box]
+      host.vm.provider "virtualbox" do |v|
+        v.name   = "yumchina-#{hostname.downcase}"
+        v.cpus   = info[:cpus]
+        v.memory = info[:mem]
+      end
+      host.vm.hostname = hostname
+      host.vm.network "private_network", ip: info[:private_ip] if info[:private_ip]
+      host.vm.network "private_network", ip: info[:public_ip] if info[:public_ip] 
+    end
+  end
+end
