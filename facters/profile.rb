@@ -39,8 +39,5 @@ mws_name.scan(/SGH([A-Z]{3})([0-9]{3})/) do |market, store|
 end unless mws_name.nil?
 
 # Set facter `food_to_go`
-is_togo = is_pos && stdnet_records.
-    select { |r| 'POS' == r[1] }.
-    group_by { |r| r[4] }.
-    any? { |n, rs| rs.size > 1 && n == hostname }
+is_togo = is_pos && (stdnet_records.count { |r| 'POS' == r[1] && hostname == r[4]  } > 1)
 set_facter('food_to_go', is_togo)
